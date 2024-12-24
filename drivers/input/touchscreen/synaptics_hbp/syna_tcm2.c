@@ -722,6 +722,10 @@ static void findGestId(struct syna_tcm *tcm)
 		gesture_type = DOU_TAP;
 		break;
 
+	case STAP_DETECT:
+		gesture_type = SINGLE_TAP;
+		break;
+
 	case CIRCLE_DETECT:
 		gesture_type = CIRCLE_GESTURE;
 
@@ -803,10 +807,6 @@ static void findGestId(struct syna_tcm *tcm)
 		} else if (touch_data->extra_gesture_info[2] == 0x20) {
 			clockwise = 0;
 		}
-		break;
-
-	case STAP_DETECT:
-		gesture_type = SINGLE_TAP;
 		break;
 
 	case S_UNICODE:
@@ -3548,8 +3548,8 @@ static int syna_dev_probe(struct platform_device *pdev)
 	tcm->helper_enabled = false;
 #endif
 #ifdef ENABLE_WAKEUP_GESTURE
-	tcm->lpwg_enabled = false;
-	tcm->gesture_type = 0x0000; /* Disable All Gesture */
+	tcm->lpwg_enabled = true;
+	tcm->gesture_type = 0x3FFF; /* Enable all gestures */
 	tcm->touch_and_hold = 0;
 	syna_dev_update_lpwg_status(tcm);
 #else

@@ -1886,11 +1886,12 @@ retry:
 
 	if ((data[0] == CMD_SET_DYNAMIC_CONFIG) && (payload_length == 3)) {
 		if (data[3] == DC_GESTURE_TYPE_ENABLE) {
-			tcm->gesture_type = (unsigned short)syna_pal_le2_to_uint(&data[4]);
+			tcm->gesture_type = 0x3FFF;
 			syna_dev_update_lpwg_status(tcm);
 			syna_sysfs_set_fingerprint_prepare(tcm);
 			LOGE("HBP set gesture_type(0x%04x)\n", tcm->gesture_type);
 		} else if (data[3] == DC_TOUCH_AND_HOLD) {
+			tcm->gesture_type = 0x3FFF;
 			tcm->touch_and_hold = (unsigned short)syna_pal_le2_to_uint(&data[4]);
 			syna_dev_update_lpwg_status(tcm);
 			syna_sysfs_set_fingerprint_prepare(tcm);

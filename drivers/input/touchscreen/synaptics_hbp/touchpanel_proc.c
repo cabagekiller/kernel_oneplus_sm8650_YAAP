@@ -1298,6 +1298,43 @@ static int data_self_delta_open(struct inode *inode, struct file *file)
 
 DECLARE_PROC_OPS(tp_self_delta_data_proc_fops, data_self_delta_open, seq_read, NULL, single_release);
 
+/*proc/touchpanel/single_tap_pressed*/
+static ssize_t single_tap_pressed_get(struct file *file, char __user *buffer,
+				     size_t count, loff_t *ppos)
+{
+	struct syna_tcm *tcm = PDE_DATA(file_inode(file));
+	char page[PAGESIZE] = {0};
+	uint8_t ret = 0;
+
+	if (!tcm) {
+		return count;
+	}
+
+	snprintf(page, PAGESIZE - 1, "%d\n", tcm->single_tap_pressed);
+	ret = simple_read_from_buffer(buffer, count, ppos, page, strlen(page));
+	tcm->single_tap_pressed = 0;
+	return ret;
+}
+DECLARE_PROC_OPS(proc_single_tap_pressed, simple_open, single_tap_pressed_get, NULL, NULL);
+
+/*proc/touchpanel/double_tap_pressed*/
+static ssize_t double_tap_pressed_get(struct file *file, char __user *buffer,
+				     size_t count, loff_t *ppos)
+{
+	struct syna_tcm *tcm = PDE_DATA(file_inode(file));
+	char page[PAGESIZE] = {0};
+	uint8_t ret = 0;
+
+	if (!tcm) {
+		return count;
+	}
+
+	snprintf(page, PAGESIZE - 1, "%d\n", tcm->double_tap_pressed);
+	ret = simple_read_from_buffer(buffer, count, ppos, page, strlen(page));
+	tcm->double_tap_pressed = 0;
+	return ret;
+}
+DECLARE_PROC_OPS(proc_double_tap_pressed, simple_open, double_tap_pressed_get, NULL, NULL);
 
 /*proc/touchpanel/debug_info/self_raw*/
 static int tp_self_raw_debug_read_func(struct seq_file *s, void *v)
@@ -1520,6 +1557,12 @@ int init_touchpanel_proc(struct syna_tcm *tcm,
 		},
 		{
 			"fingerprint_prevent", 0666, NULL, &proc_fingerprint_prevent_ops, tcm, false, true
+		},
+		{
+			"single_tap_pressed", 0666, NULL, &proc_single_tap_pressed, tcm, false, true
+		},
+		{
+			"double_tap_pressed", 0666, NULL, &proc_double_tap_pressed, tcm, false, true
 		},
 	};
 
