@@ -36,6 +36,7 @@
  * The declarations are available in synaptics_touchcom_func_touch.h.
  */
 
+#include <linux/wait.h>
 #include "synaptics_touchcom_func_touch.h"
 #include "../syna_tcm2.h"
 #include "../touchpanel_healthinfo/touchpanel_healthinfo.h"
@@ -637,10 +638,13 @@ int syna_tcm_parse_touch_report(struct tcm_dev *tcm_dev,
 				}
 			}
 			if (touch_data->gesture_id == STAP_DETECT) {
-				if (syna_tcm_check_double_tap())
+				if (syna_tcm_check_double_tap()) {
 					tcm->double_tap_pressed = 1;
-				else
+					wake_up_interruptible(&tcm->wait_dt);
+				} else {
 					tcm->single_tap_pressed = 1;
+					wake_up_interruptible(&tcm->wait_st);
+				}
 			}
 			if (retval < 0) {
 				LOGE("Fail to get gesture id\n");

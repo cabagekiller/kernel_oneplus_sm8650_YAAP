@@ -3526,6 +3526,8 @@ static int syna_dev_probe(struct platform_device *pdev)
 	mutex_init(&tcm->mutex);
 	init_completion(&tcm->fw_complete);
 	init_waitqueue_head(&tcm->wait);
+	init_waitqueue_head(&tcm->wait_dt);
+	init_waitqueue_head(&tcm->wait_st);
 
 #ifdef USE_CUSTOM_TOUCH_REPORT_CONFIG
 	tcm->has_custom_tp_config = true;

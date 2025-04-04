@@ -5,6 +5,7 @@
 
 #include <linux/types.h>
 #include <linux/proc_fs.h>
+#include <linux/fs.h>
 #include <linux/input/mt.h>
 #include <linux/input.h>
 #include <linux/gpio.h>
@@ -1300,41 +1301,93 @@ DECLARE_PROC_OPS(tp_self_delta_data_proc_fops, data_self_delta_open, seq_read, N
 
 /*proc/touchpanel/single_tap_pressed*/
 static ssize_t single_tap_pressed_get(struct file *file, char __user *buffer,
-				     size_t count, loff_t *ppos)
+                                     size_t count, loff_t *ppos)
 {
 	struct syna_tcm *tcm = PDE_DATA(file_inode(file));
 	char page[PAGESIZE] = {0};
-	uint8_t ret = 0;
+	ssize_t ret;
 
-	if (!tcm) {
+	if (!tcm)
 		return count;
-	}
 
 	snprintf(page, PAGESIZE - 1, "%d\n", tcm->single_tap_pressed);
 	ret = simple_read_from_buffer(buffer, count, ppos, page, strlen(page));
-	tcm->single_tap_pressed = 0;
+
+	if (ret > 0)
+		tcm->single_tap_pressed = 0;
+
 	return ret;
 }
-DECLARE_PROC_OPS(proc_single_tap_pressed, simple_open, single_tap_pressed_get, NULL, NULL);
+
+static __poll_t single_tap_pressed_poll(struct file *file, poll_table *wait)
+{
+	struct syna_tcm *tcm = PDE_DATA(file_inode(file));
+	__poll_t mask = 0;
+
+	poll_wait(file, &tcm->wait_dt, wait);
+
+	if (tcm->single_tap_pressed)
+		mask |= EPOLLIN | EPOLLRDNORM;
+
+	return mask;
+}
+
+static loff_t single_tap_pressed_lseek(struct file *file, loff_t offset, int whence) {
+	return generic_file_llseek(file, offset, whence);
+}
+
+static const struct proc_ops proc_single_tap_pressed = {
+	.proc_open    = simple_open,
+	.proc_read    = single_tap_pressed_get,
+	.proc_write   = NULL,
+	.proc_lseek   = single_tap_pressed_lseek,
+	.proc_poll    = single_tap_pressed_poll,
+};
 
 /*proc/touchpanel/double_tap_pressed*/
 static ssize_t double_tap_pressed_get(struct file *file, char __user *buffer,
-				     size_t count, loff_t *ppos)
+                                     size_t count, loff_t *ppos)
 {
 	struct syna_tcm *tcm = PDE_DATA(file_inode(file));
 	char page[PAGESIZE] = {0};
-	uint8_t ret = 0;
+	ssize_t ret;
 
-	if (!tcm) {
+	if (!tcm)
 		return count;
-	}
 
 	snprintf(page, PAGESIZE - 1, "%d\n", tcm->double_tap_pressed);
 	ret = simple_read_from_buffer(buffer, count, ppos, page, strlen(page));
-	tcm->double_tap_pressed = 0;
+
+	if (ret > 0)
+		tcm->double_tap_pressed = 0;
+
 	return ret;
 }
-DECLARE_PROC_OPS(proc_double_tap_pressed, simple_open, double_tap_pressed_get, NULL, NULL);
+
+static __poll_t double_tap_pressed_poll(struct file *file, poll_table *wait)
+{
+	struct syna_tcm *tcm = PDE_DATA(file_inode(file));
+	__poll_t mask = 0;
+
+	poll_wait(file, &tcm->wait_dt, wait);
+
+	if (tcm->double_tap_pressed)
+		mask |= EPOLLIN | EPOLLRDNORM;
+
+	return mask;
+}
+
+static loff_t double_tap_pressed_lseek(struct file *file, loff_t offset, int whence) {
+	return generic_file_llseek(file, offset, whence);
+}
+
+static const struct proc_ops proc_double_tap_pressed = {
+	.proc_open    = simple_open,
+	.proc_read    = double_tap_pressed_get,
+	.proc_write   = NULL,
+	.proc_lseek   = double_tap_pressed_lseek,
+	.proc_poll    = double_tap_pressed_poll,
+};
 
 /*proc/touchpanel/debug_info/self_raw*/
 static int tp_self_raw_debug_read_func(struct seq_file *s, void *v)

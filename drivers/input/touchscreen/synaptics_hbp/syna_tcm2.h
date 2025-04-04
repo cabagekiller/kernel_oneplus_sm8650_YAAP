@@ -714,6 +714,8 @@ struct syna_tcm {
 	bool under_water;
 	int single_tap_pressed;
 	int double_tap_pressed;
+	wait_queue_head_t wait_dt;
+	wait_queue_head_t wait_st;
 
 	unsigned int waiting_frame;
 	unsigned int wait_for_ioctl_operation;
